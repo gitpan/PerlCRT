@@ -1,5 +1,5 @@
 
-PerlCRT.dll and PerlCRT.lib fix problems with MSVCRT.DLL
+PerlCRTD.dll and PerlCRTD.lib fix problems with MSVCRT.DLL
 
 MSVCRT.DLL has 2 known bugs.
   1) On Win95 when a socket handle is passed to the open_osfhandle
@@ -16,19 +16,19 @@ Changes fromn 1.0
 
 -----------------------------------------------------------------
 
-Building Perl to use with PerlCRT.dll and PerlCRT.lib currently
+Building Perl to use with PerlCRTD.dll and PerlCRTD.lib currently
 requires VC 5.0 with Service pack 3
 (Service pack 3 can be found at http://www.microsoft.com/vstudio/sp/)
 
 
-Copy PerlCRT.dll to %SystemRoot%\system32 directory.
-Copy PerlCRT.lib to a directory that is in the LIB environment variable.
+Copy PerlCRTD.dll to %SystemRoot%\system32 directory.
+Copy PerlCRTD.lib and PerlCRTD.pdb to a directory that is in the LIB environment variable.
 
 If you are using nmake uncomment 'USE_PERLCRT	= define' in Makefile
 If you are using dmake uncomment 'USE_PERLCRT	*= define' in makefile.mk
 
-To build a version with DEBUGGING defined you will need the corresponding
-debug zip.
+To build a version without DEBUGGING defined you will need the corresponding
+non debug zip.
 
 
 ----------------------------------------------------------------
