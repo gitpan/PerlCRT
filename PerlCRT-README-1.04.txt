@@ -1,10 +1,10 @@
 NOTE: Please download the correct zip.
 
-PerlCRT-1.03-bin-1-Alpha-VC.zip		non debug for the Alpha processor
-PerlCRT-1.03-bin-1-debug-Alpha-VC.zip	debug for the Alpha processor
+PerlCRT-1.04-bin-1-Alpha-VC.zip		non debug for the Alpha processor
+PerlCRT-1.04-bin-1-debug-Alpha-VC.zip	debug for the Alpha processor
 
-PerlCRT-1.03-bin-1-x86-VC.zip		non debug for the Intel processor
-PerlCRT-1.03-bin-1-debug-x86-VC.zip	debug for the Intel processor
+PerlCRT-1.04-bin-1-x86-VC.zip		non debug for the Intel processor
+PerlCRT-1.04-bin-1-debug-x86-VC.zip	debug for the Intel processor
 
 -----------------------------------------------------------------
 
@@ -25,8 +25,13 @@ MSVCRT.DLL has the following known bugs.
      one week later.  For example, this causes localtime() to report
      time values that are off by an hour in North America for the
      first week of DST in April, 2001.
+  4) The function x64toa did not convert negatives to positives
+     before beginning conversions.
 
 -----------------------------------------------------------------
+
+Changes from 1.03
+ o Corrected x64toa to convert negatives to positives before beginning conversions
 
 Changes from 1.02
  o Corrected read to set FCRLF when reading more than requested size
@@ -147,5 +152,16 @@ diff -ruN src.orig/TZSET.C src/TZSET.C
                  yearday += (dayofweek - monthdow) + (week - 1) * 7;
              else
                  yearday += (dayofweek - monthdow) + week * 7;
+diff -ru src.orig/XTOA.C src/XTOA.C
+--- src.orig/XTOA.C	Sun Mar 21 07:28:04 1999
++++ src/XTOA.C	Sun Mar 21 07:32:03 1999
+@@ -136,6 +136,7 @@
+         if ( is_neg )
+         {
+             *p++ = '-';         /* negative, so output '-' and negate */
++            val = (unsigned __int64)(-(__int64)val);
+         }
+ 
+         firstdig = p;           /* save pointer to first digit */
 End of Patch.
 
