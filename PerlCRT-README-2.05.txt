@@ -1,37 +1,35 @@
-NOTE: Please download the correct zip.
+NOTE: Please download the correct zip. This will replace the PerlCRT[D] that
+is provided with ActivePerl builds 5xx. 
 
-PerlCRT-1.04-bin-1-Alpha-VC.zip		non debug for the Alpha processor
-PerlCRT-1.04-bin-1-debug-Alpha-VC.zip	debug for the Alpha processor
+PerlCRT-2.05-bin-1-Alpha-VC.zip		non debug for the Alpha processor
+PerlCRT-2.05-bin-1-debug-Alpha-VC.zip	debug for the Alpha processor
 
-PerlCRT-1.04-bin-1-x86-VC.zip		non debug for the Intel processor
-PerlCRT-1.04-bin-1-debug-x86-VC.zip	debug for the Intel processor
+PerlCRT-2.05-bin-1-x86-VC.zip		non debug for the Intel processor
+PerlCRT-2.05-bin-1-debug-x86-VC.zip	debug for the Intel processor
 
 -----------------------------------------------------------------
 
 PerlCRT.dll and PerlCRT.lib fix problems with MSVCRT.DLL
 
-MSVCRT.DLL has the following known bugs.
+MSVCRT.DLL 6.0 has the following known bugs.
   1) On Win95 when a socket handle is passed to the open_osfhandle
      the call to GetFileType() returns FILE_TYPE_UNKNOWN rather
      than FILE_TYPE_CHAR.
   2) When using read() on a file that was opened in text mode,
      and the read terminates between a CR and LF the CR is not
      translated to a LF. FCRLF is used to pass this fact on to tell().
-  3) Several time-related functions (localtime(), findfirst(),
-     findnext(), fstat(), stat() and time()) are affected by a
-     miscalculation of when Daylight Saving Time goes into effect.
-     When the begin-date for DST happens to fall on the first day
-     of the month, DST is mistakenly reported as not starting until
-     one week later.  For example, this causes localtime() to report
-     time values that are off by an hour in North America for the
-     first week of DST in April, 2001.
-  4) The function x64toa did not convert negatives to positives
-     before beginning conversions.
 
 -----------------------------------------------------------------
 
+Changes from 2.04
+ o Added note about ActivePerl
+
+Changes from 1.04
+ o Built with 6.0 source.
+
 Changes from 1.03
- o Corrected x64toa to convert negatives to positives before beginning conversions
+ o Corrected x64toa to convert negatives to positives before beginning
+   conversions
 
 Changes from 1.02
  o Corrected read to set FCRLF when reading more than requested size
@@ -45,7 +43,7 @@ Changes from 1.0
 -----------------------------------------------------------------
 
 Building Perl to use with PerlCRT.dll and PerlCRT.lib currently
-requires VC 5.0 with Service pack 3
+requires VC 5.0 with Service pack 3 or later
 (Service pack 3 can be found at http://www.microsoft.com/vstudio/sp/)
 
 
@@ -65,10 +63,10 @@ debug zip.
 
 Diffs for those who are interested:
 
-diff -ruN src.orig/OSFINFO.C src/OSFINFO.C
---- src.orig/OSFINFO.C	Fri Jan 17 08:41:43 1997
-+++ src/OSFINFO.C	Tue Jun 16 14:31:41 1998
-@@ -335,17 +335,12 @@
+diff -ru src.orig/OSFINFO.C src/OSFINFO.C
+--- src.orig/OSFINFO.C	Tue Jun 16 23:59:59 1998
++++ src/OSFINFO.C	Wed Nov 03 11:46:19 1999
+@@ -338,17 +338,12 @@
          /* find out what type of file (file/device/pipe) */
  
          isdev = GetFileType((HANDLE)osfhandle);
@@ -78,22 +76,21 @@ diff -ruN src.orig/OSFINFO.C src/OSFINFO.C
 -            return -1;
 -        }
  
--        /* is isdev value to set flags */
+         /* is isdev value to set flags */
 -        if (isdev == FILE_TYPE_CHAR)
 -            fileflags |= FDEV;
 -        else if (isdev == FILE_TYPE_PIPE)
-+		/* is isdev value to set flags */
 +        if (isdev == FILE_TYPE_PIPE)
              fileflags |= FPIPE;
-+        else 
++        else
 +            fileflags |= FDEV;
  
  
          /* attempt to allocate a C Runtime file handle */
-diff -ruN src.orig/READ.C src/READ.C
---- src.orig/READ.C	Fri Jan 17 08:41:44 1997
-+++ src/READ.C	Fri Feb 19 16:40:43 1999
-@@ -175,11 +175,12 @@
+diff -ru src.orig/READ.C src/READ.C
+--- src.orig/READ.C	Tue Jun 16 23:59:59 1998
++++ src/READ.C	Wed Nov 03 11:53:34 1999
+@@ -175,10 +175,13 @@
              /* now must translate CR-LFs to LFs in the buffer */
  
              /* set CRLF flag to indicate LF at beginning of buffer */
@@ -101,16 +98,17 @@ diff -ruN src.orig/READ.C src/READ.C
 -                _osfile(fh) |= FCRLF;
 -            else
 -                _osfile(fh) &= ~FCRLF;
++            /* set CRLF flag to indicate LF at beginning of buffer */
 +            /* if ( (os_read != 0) && (*(char *)buf == LF) ) */
 +            /*    _osfile(fh) |= FCRLF;                      */
 +            /* else                                          */
 +            /*    _osfile(fh) &= ~FCRLF;                     */
++
++            _osfile(fh) &= ~FCRLF;
  
-+			_osfile(fh) &= ~FCRLF;
              /* convert chars in the buffer: p is src, q is dest */
              p = q = buf;
-             while (p < (char *)buf + bytes_read) {
-@@ -221,12 +222,9 @@
+@@ -221,12 +224,9 @@
                                 have several possibilities:
                                 1. disk file and char is not LF; just seek back
                                    and copy CR
@@ -126,7 +124,7 @@ diff -ruN src.orig/READ.C src/READ.C
                                    put char in pipe lookahead buffer. */
                              if (_osfile(fh) & (FDEV|FPIPE)) {
                                  /* non-seekable device */
-@@ -239,10 +237,12 @@
+@@ -239,10 +239,12 @@
                              }
                              else {
                                  /* disk file */
@@ -135,33 +133,10 @@ diff -ruN src.orig/READ.C src/READ.C
                                      /* nothing read yet; must make some
                                         progress */
                                      *q++ = LF;
-+									/* turn on this flag for tell routine */
++                                    /* turn on this flag for tell routine */
 +                                    _osfile(fh) |= FCRLF;
                                  }
                                  else {
                                      /* seek back */
-diff -ruN src.orig/TZSET.C src/TZSET.C
---- src.orig/TZSET.C	Fri Jan 17 08:44:08 1997
-+++ src/TZSET.C	Fri Jan 22 17:40:44 1999
-@@ -377,7 +377,7 @@
-             /*
-              * Figure the year-day of the transition date
-              */
--            if ( monthdow < dayofweek )
-+            if ( monthdow <= dayofweek )
-                 yearday += (dayofweek - monthdow) + (week - 1) * 7;
-             else
-                 yearday += (dayofweek - monthdow) + week * 7;
-diff -ru src.orig/XTOA.C src/XTOA.C
---- src.orig/XTOA.C	Sun Mar 21 07:28:04 1999
-+++ src/XTOA.C	Sun Mar 21 07:32:03 1999
-@@ -136,6 +136,7 @@
-         if ( is_neg )
-         {
-             *p++ = '-';         /* negative, so output '-' and negate */
-+            val = (unsigned __int64)(-(__int64)val);
-         }
- 
-         firstdig = p;           /* save pointer to first digit */
 End of Patch.
 
