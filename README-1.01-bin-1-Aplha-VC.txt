@@ -11,6 +11,11 @@ MSVCRT.DLL has 2 known bugs.
 
 -----------------------------------------------------------------
 
+Changes fromn 1.0
+ o Added _free_oshndl to exports
+
+-----------------------------------------------------------------
+
 Building Perl to use with PerlCRT.dll and PerlCRT.lib currently
 requires VC 5.0 with Service pack 3
 (Service pack 3 can be found at http://www.microsoft.com/vstudio/sp/)
